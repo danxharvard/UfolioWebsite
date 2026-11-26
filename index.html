@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ufolio – the little saucer of a browser for Mac</title>
+<meta name="description" content="Ufolio is a free, native Mac browser built on WebKit. Instant pages, a Force Field that stops ads and trackers before they load, and a frosted glass design. No analytics, ever.">
+<meta name="theme-color" content="#0b0a1f">
+<meta property="og:title" content="Ufolio – the little saucer of a browser for Mac">
+<meta property="og:description" content="Fast, light and private. Ads stopped before they load. Free and open source.">
+<meta property="og:image" content="assets/icon.png">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/icon.png">
+<style>
+  :root {
+    --sky-top: #070614;
+    --sky-mid: #0f0c2b;
+    --sky-low: #1a1446;
+    --ink: #f4f2ff;
+    --ink-soft: rgba(244, 242, 255, 0.72);
+    --ink-faint: rgba(244, 242, 255, 0.48);
+    --violet: #8c66ff;
+    --violet-deep: #4033bf;
+    --beam: #8cff8c;
+    --beam-soft: rgba(140, 255, 140, 0.16);
+    --glass: rgba(255, 255, 255, 0.06);
+    --glass-strong: rgba(255, 255, 255, 0.10);
+    --glass-edge: rgba(255, 255, 255, 0.12);
+    --radius: 18px;
+    --max: 1120px;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--sky-top);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: inherit; }
+  img { max-width: 100%; display: block; }
+
+  /* The night sky behind everything. */
+  .sky {
+    position: fixed; inset: 0; z-index: -2;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(140, 102, 255, 0.22), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 85% 75%, rgba(64, 51, 191, 0.25), transparent 70%),
+      linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 55%, var(--sky-low) 100%);
+  }
+  #stars { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; pointer-events: none; }
+
+  .wrap { width: min(var(--max), 100% - 32px); margin: 0 auto; }
+
+  /* Top banner, as on Hushlist. */
+  .banner {
+    background: linear-gradient(90deg, rgba(140, 102, 255, 0.28), rgba(64, 51, 191, 0.28));
+    border-bottom: 1px solid var(--glass-edge);
+    font-size: 14px;
+  }
+  .banner .wrap { display: flex; align-items: center; gap: 12px; padding: 9px 0; flex-wrap: wrap; justify-content: center; text-align: center; }
+  .banner a { color: var(--beam); text-decoration: none; font-weight: 600; white-space: nowrap; }
+  .banner a:hover { text-decoration: underline; }
+
+  /* Navigation. */
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    background: rgba(7, 6, 20, 0.55);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+  .brand svg { width: 30px; height: 30px; }
+  .links { display: flex; gap: 26px; font-size: 14.5px; }
+  .links a { text-decoration: none; color: var(--ink-soft); transition: color .15s; }
+  .links a:hover { color: var(--ink); }
+  .nav-cta { display: flex; gap: 10px; align-items: center; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 22px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 15.5px;
+    border: 1px solid transparent; cursor: pointer; transition: transform .16s cubic-bezier(.2,.8,.2,1), box-shadow .16s, background .16s;
+    white-space: nowrap;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:active { transform: translateY(0) scale(.98); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--violet), var(--violet-deep));
+    box-shadow: 0 8px 28px rgba(140, 102, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    color: #fff;
+  }
+  .btn-primary:hover { box-shadow: 0 10px 34px rgba(140, 102, 255, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25); }
+  .btn-glass { background: var(--glass); border-color: var(--glass-edge); color: var(--ink); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .btn-glass:hover { background: var(--glass-strong); }
+  .btn-small { padding: 8px 16px; font-size: 14px; }
+
+  /* Hero. */
+  .hero { text-align: center; padding: 72px 0 40px; position: relative; }
+  .saucer { width: 220px; height: 220px; margin: 0 auto 8px; position: relative; }
+  .saucer svg { width: 100%; height: 100%; overflow: visible; }
+  .saucer .craft { animation: hover 5s ease-in-out infinite; transform-origin: center; }
+  .saucer .beam { animation: beam 5s ease-in-out infinite; transform-origin: 50% 40%; }
+  .saucer .light { animation: blink 1.6s steps(1) infinite; }
+  .saucer .light:nth-of-type(2) { animation-delay: .4s; }
+  .saucer .light:nth-of-type(3) { animation-delay: .8s; }
+  .saucer .light:nth-of-type(4) { animation-delay: 1.2s; }
+  @keyframes hover { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+  @keyframes beam { 0%, 100% { opacity: .85; transform: scaleX(1); } 50% { opacity: .55; transform: scaleX(.92); } }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px 6px 10px; border-radius: 999px;
+    background: var(--glass); border: 1px solid var(--glass-edge); font-size: 13.5px; color: var(--ink-soft);
+    text-decoration: none; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  }
+  .pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--beam); box-shadow: 0 0 10px var(--beam); }
+  .pill:hover { color: var(--ink); }
+  .eyebrow { margin: 22px 0 6px; color: var(--ink-faint); font-size: 15px; letter-spacing: .02em; }
+  h1 {
+    margin: 0 auto; max-width: 14ch;
+    font: 800 clamp(44px, 8.5vw, 92px)/1.02 -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+    letter-spacing: -0.045em;
+    background: linear-gradient(180deg, #ffffff 30%, #c9bcff 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lede { margin: 20px auto 0; max-width: 40em; color: var(--ink-soft); font-size: clamp(17px, 2.2vw, 20px); }
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
+  .fine { margin-top: 14px; color: var(--ink-faint); font-size: 13.5px; }
+
+  /* Stats row. */
+  .stats {
+    margin: 56px auto 0; display: grid; grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--glass-edge); border-radius: var(--radius); overflow: hidden;
+    background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  }
+  .stat { padding: 24px 16px; text-align: center; }
+  .stat + .stat { border-left: 1px solid var(--glass-edge); }
+  .stat b { display: block; font-size: clamp(26px, 3.6vw, 36px); font-weight: 700; letter-spacing: -0.03em; }
+  .stat span { color: var(--ink-faint); font-size: 13.5px; }
+
+  /* Sections. */
+  section { padding: 88px 0 0; scroll-margin-top: 70px; }
+  .section-head { text-align: center; margin-bottom: 40px; }
+  h2 {
+    margin: 0; font: 800 clamp(32px, 5vw, 52px)/1.08 -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+    letter-spacing: -0.035em;
+  }
+  .section-head p { margin: 14px auto 0; max-width: 36em; color: var(--ink-soft); font-size: 17.5px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card {
+    position: relative; padding: 26px; border-radius: var(--radius);
+    background: var(--glass); border: 1px solid var(--glass-edge);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    transition: transform .2s cubic-bezier(.2,.8,.2,1), background .2s, border-color .2s;
+  }
+  .card:hover { transform: translateY(-3px); background: var(--glass-strong); border-color: rgba(140, 102, 255, 0.4); }
+  .card .icon {
+    width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 16px;
+    background: linear-gradient(135deg, var(--violet), var(--violet-deep)); font-size: 22px;
+    box-shadow: 0 6px 18px rgba(140, 102, 255, 0.3);
+  }
+  .card h3 { margin: 0 0 8px; font-size: 18.5px; letter-spacing: -0.01em; }
+  .card p { margin: 0; color: var(--ink-soft); font-size: 15px; }
+  .card ul { margin: 12px 0 0; padding-left: 18px; color: var(--ink-soft); font-size: 14.5px; }
+  .card li { margin: 4px 0; }
+
+  /* Force Field feature panel. */
+  .feature {
+    display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center;
+    padding: 44px; border-radius: 26px;
+    background: linear-gradient(135deg, rgba(140, 102, 255, 0.16), rgba(64, 51, 191, 0.10));
+    border: 1px solid var(--glass-edge);
+  }
+  .feature h2 { text-align: left; }
+  .feature p { color: var(--ink-soft); font-size: 17px; }
+  .checks { list-style: none; padding: 0; margin: 20px 0 0; }
+  .checks li { position: relative; padding-left: 30px; margin: 10px 0; color: var(--ink-soft); }
+  .checks li::before {
+    content: ""; position: absolute; left: 0; top: 4px; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--beam-soft) center/11px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6.5l2.5 2.5L10 3.5' fill='none' stroke='%238cff8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  .shield { display: grid; place-items: center; }
+  .counter {
+    width: min(100%, 360px); padding: 26px; border-radius: 22px; text-align: center;
+    background: rgba(7, 6, 20, 0.55); border: 1px solid var(--glass-edge);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  }
+  .counter .num { font-size: 60px; font-weight: 800; letter-spacing: -0.04em; color: var(--beam); text-shadow: 0 0 30px rgba(140, 255, 140, 0.35); font-variant-numeric: tabular-nums; }
+  .counter .label { color: var(--ink-soft); }
+  .bars { margin-top: 22px; display: grid; gap: 10px; text-align: left; font-size: 13.5px; color: var(--ink-soft); }
+  .bar { display: grid; grid-template-columns: 76px 1fr 38px; gap: 10px; align-items: center; }
+  .bar i { display: block; height: 7px; border-radius: 99px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+  .bar i::after { content: ""; display: block; height: 100%; width: var(--w); border-radius: inherit; background: linear-gradient(90deg, var(--violet), var(--beam)); }
+  .bar em { font-style: normal; text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* Install steps. */
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; counter-reset: step; }
+  .step { counter-increment: step; }
+  .step::before {
+    content: counter(step); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+    margin-bottom: 14px; font-weight: 700; color: #0b0a1f; background: var(--beam); box-shadow: 0 0 18px rgba(140, 255, 140, 0.45);
+  }
+  .step h3 { font-size: 17px; }
+  .requirements { text-align: center; margin-top: 22px; color: var(--ink-faint); font-size: 14px; }
+
+  /* Promises. */
+  .promises { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  /* FAQ. */
+  .faq { max-width: 780px; margin: 0 auto; }
+  details {
+    border: 1px solid var(--glass-edge); border-radius: 14px; background: var(--glass);
+    margin: 10px 0; padding: 0 20px; transition: background .2s;
+  }
+  details[open] { background: var(--glass-strong); }
+  summary { cursor: pointer; list-style: none; padding: 18px 0; font-weight: 600; display: flex; justify-content: space-between; gap: 16px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; color: var(--violet); font-size: 22px; line-height: 1; transition: transform .2s; }
+  details[open] summary::after { transform: rotate(45deg); }
+  details p { margin: 0 0 18px; color: var(--ink-soft); }
+
+  /* Final call to action. */
+  .final { text-align: center; padding: 110px 0 40px; }
+  .final .saucer { width: 150px; height: 150px; }
+
+  footer { border-top: 1px solid rgba(255, 255, 255, 0.07); margin-top: 70px; padding: 28px 0 40px; color: var(--ink-faint); font-size: 14px; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  footer a { color: var(--ink-soft); text-decoration: none; }
+  footer a:hover { color: var(--ink); }
+  footer .row { display: flex; gap: 20px; flex-wrap: wrap; }
+
+  .tag {
+    display: inline-block; vertical-align: 2px; margin-right: 2px; padding: 1px 7px; border-radius: 99px;
+    font: 700 10.5px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--beam); background: var(--beam-soft); border: 1px solid rgba(140, 255, 140, 0.3);
+  }
+  code { font: 13.5px ui-monospace, SFMono-Regular, Menlo, monospace; background: rgba(255,255,255,.08); padding: 2px 6px; border-radius: 6px; }
+
+  @media (max-width: 900px) {
+    .grid, .promises { grid-template-columns: repeat(2, 1fr); }
+    .steps { grid-template-columns: repeat(2, 1fr); }
+    .feature { grid-template-columns: 1fr; padding: 30px; }
+    .links { display: none; }
+  }
+  @media (max-width: 600px) {
+    .grid, .promises, .steps { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(3) { border-left: 0; }
+    .stat:nth-child(n+3) { border-top: 1px solid var(--glass-edge); }
+    .hero { padding-top: 44px; }
+    .saucer { width: 170px; height: 170px; }
+    .nav-cta .btn-glass { display: none; }
+    .feature { padding: 22px; }
+    section { padding-top: 68px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+<div class="sky" aria-hidden="true"></div>
+<canvas id="stars" aria-hidden="true"></canvas>
+
+<!-- The saucer, drawn once and reused. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="disc" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fafaff"/><stop offset=".55" stop-color="#b8b8c8"/><stop offset="1" stop-color="#7a7a90"/>
+    </linearGradient>
+    <linearGradient id="dome" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c9f7ff" stop-opacity=".95"/><stop offset="1" stop-color="#5fb7d6" stop-opacity=".75"/>
+    </linearGradient>
+    <linearGradient id="beamFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8cff8c" stop-opacity=".6"/><stop offset="1" stop-color="#8cff8c" stop-opacity="0"/>
+    </linearGradient>
+    <symbol id="mark" viewBox="0 0 100 100">
+      <path d="M38 52 H62 L80 96 H20 Z" fill="url(#beamFill)"/>
+      <ellipse cx="50" cy="34" rx="20" ry="19" fill="url(#dome)"/>
+      <ellipse cx="50" cy="52" rx="46" ry="11" fill="url(#disc)"/>
+      <ellipse cx="50" cy="60" rx="30" ry="7" fill="#6c6c82"/>
+      <circle cx="84" cy="14" r="2.6" fill="#fff" opacity=".85"/>
+      <circle cx="13" cy="20" r="1.8" fill="#fff" opacity=".65"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="banner">
+  <div class="wrap">
+    <span><b>Hushlist</b> blocks ads and trackers on every device, and plugs straight into Ufolio’s Force Field.</span>
+    <a href="https://hushlist.online">Visit hushlist.online ›</a>
+  </div>
+</div>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Ufolio home">
+      <svg aria-hidden="true"><use href="#mark"/></svg>
+      Ufolio
+    </a>
+    <div class="links">
+      <a href="#features">Features</a>
+      <a href="#force-field">Force Field</a>
+      <a href="#install">Install</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-cta">
+      <a class="btn btn-glass btn-small" href="https://github.com/danxharvard/Ufolio">GitHub</a>
+      <a class="btn btn-primary btn-small" href="https://github.com/danxharvard/Ufolio/releases/latest">Download</a>
+    </div>
+  </div>
+</nav>
+
+<main id="top">
+  <header class="hero wrap">
+    <div class="saucer" aria-hidden="true">
+      <svg viewBox="0 0 220 220">
+        <g class="beam"><path d="M84 112 H136 L178 214 H42 Z" fill="url(#beamFill)"/></g>
+        <g class="craft">
+          <ellipse cx="110" cy="74" rx="40" ry="38" fill="url(#dome)"/>
+          <!-- two little crew members -->
+          <ellipse cx="97" cy="80" rx="7" ry="9" fill="#7dff8f"/><circle cx="94.5" cy="78" r="1.6" fill="#0b0a1f"/><circle cx="99.5" cy="78" r="1.6" fill="#0b0a1f"/>
+          <ellipse cx="122" cy="82" rx="6" ry="8" fill="#7dff8f"/><circle cx="120" cy="80.5" r="1.4" fill="#0b0a1f"/><circle cx="124" cy="80.5" r="1.4" fill="#0b0a1f"/>
+          <ellipse cx="110" cy="112" rx="102" ry="24" fill="url(#disc)"/>
+          <ellipse cx="110" cy="106" rx="96" ry="12" fill="#ffffff" opacity=".35"/>
+          <ellipse cx="110" cy="128" rx="64" ry="14" fill="#6c6c82"/>
+          <circle class="light" cx="40" cy="116" r="5" fill="#ff7390"/>
+          <circle class="light" cx="80" cy="124" r="5" fill="#ffd166"/>
+          <circle class="light" cx="140" cy="124" r="5" fill="#8cff8c"/>
+          <circle class="light" cx="180" cy="116" r="5" fill="#8ce1ff"/>
+        </g>
+      </svg>
+    </div>
+    <a class="pill" href="#features"><span class="dot"></span>Coming in 0.51: Instant pages and Send to iPhone</a>
+    <p class="eyebrow">A native browser for Mac</p>
+    <h1>Browse at warp speed.</h1>
+    <p class="lede">Ufolio is a sleek little saucer of a browser. Built on WebKit, the engine behind Safari, with a Force Field that stops ads and trackers before they ever reach your Mac.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/danxharvard/Ufolio/releases/latest">Beam it down to your Mac</a>
+      <a class="btn btn-glass" href="#features">See what’s on board</a>
+    </div>
+    <p class="fine">Free and open source · macOS 15 Sequoia or later · Apple Silicon and Intel</p>
+
+    <div class="stats" role="list">
+      <div class="stat" role="listitem"><b>9 MB</b><span>download</span></div>
+      <div class="stat" role="listitem"><b>~40 MB</b><span>memory for the app</span></div>
+      <div class="stat" role="listitem"><b>Free</b><span>no account, no sign-up</span></div>
+      <div class="stat" role="listitem"><b>0</b><span>analytics, ever</span></div>
+    </div>
+  </header>
+
+  <section id="features" class="wrap">
+    <div class="section-head">
+      <h2>Tiny craft. Big power.</h2>
+      <p>Most browsers are hulking motherships. Ufolio is light, quick and seriously capable, with everything you’d expect from a browser and plenty you wouldn’t.</p>
+    </div>
+    <div class="grid">
+      <article class="card">
+        <div class="icon" aria-hidden="true">⚡️</div>
+        <h3>Warp speed</h3>
+        <p>WebKit with Safari’s speed settings switched on, and Back and Forward straight from memory. <span class="tag">Beta</span> Instant pages loads what you’re about to open, so it’s there the moment you click.</p>
+      </article>
+      <article class="card">
+        <div class="icon" aria-hidden="true">🛡️</div>
+        <h3>Force Field</h3>
+        <p>Ads, trackers and cookie banners zapped before they load, with a live count of everything it stopped.</p>
+      </article>
+      <article class="card">
+        <div class="icon" aria-hidden="true">👽</div>
+        <h3>Cloaked by design</h3>
+        <p>Third-party cookies blocked, fingerprinting protection, Clean Links and look-alike site warnings.</p>
+      </article>
+      <article class="card">
+        <div class="icon" aria-hidden="true">🌌</div>
+        <h3>Frosted glass</h3>
+        <p>A glass-canopy design in Day and Night, starry start page skies, and tabs along the top or down the side.</p>
+      </article>
+      <article class="card">
+        <div class="icon" aria-hidden="true">🪐</div>
+        <h3>Orbits and Profiles</h3>
+        <p>Keep Work and Personal in separate orbits, each with its own tabs, and its own sign-ins if you like.</p>
+      </article>
+      <article class="card">
+        <div class="icon" aria-hidden="true">🛰️</div>
+        <h3>Command Palette</h3>
+        <p>Press ⌘K for one box that finds tabs, commands, bookmarks and history.</p>
+      </article>
+      <article class="card">
+        <div class="icon" aria-hidden="true">🔐</div>
+        <h3>Passwords, sorted <span class="tag">Beta</span></h3>
+        <p>Sign in once and Ufolio remembers it, in its own encrypted vault on your Mac. No Keychain prompts.</p>
+      </article>
+      <article class="card">
+        <div class="icon" aria-hidden="true">📱</div>
+        <h3>Send to iPhone <span class="tag">Beta</span></h3>
+        <p>Pass the page you’re on to your iPhone with AirDrop, the Share menu or a QR code. No account needed.</p>
+      </article>
+      <article class="card">
+        <div class="icon" aria-hidden="true">🧩</div>
+        <h3>Extensions welcome</h3>
+        <p>Docks Chrome and Safari extensions, plus Split View, Reader, Picture in Picture and quick translation.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="force-field" class="wrap">
+    <div class="feature">
+      <div>
+        <h2>Ads vaporised before they land.</h2>
+        <p>The Force Field blocks ads and trackers before they download, so busy pages land sooner and use less data. Lower it for any site with one click.</p>
+        <ul class="checks">
+          <li>Ads, trackers, annoyances and cookie banners</li>
+          <li>Empty ad gaps closed up, so pages look clean</li>
+          <li>Element Zapper: point at anything annoying, gone for good</li>
+          <li>Your own filter lists: EasyList, uBlock Origin, hosts files</li>
+          <li>Connect <a href="https://hushlist.online">Hushlist</a> for 240,000+ more blocked domains</li>
+        </ul>
+      </div>
+      <div class="shield" aria-hidden="true">
+        <div class="counter">
+          <div class="num" id="abducted">0</div>
+          <div class="label">ads and trackers abducted this week</div>
+          <div class="bars">
+            <div class="bar"><span>Ads</span><i style="--w:78%"></i><em>62%</em></div>
+            <div class="bar"><span>Trackers</span><i style="--w:52%"></i><em>31%</em></div>
+            <div class="bar"><span>Annoyances</span><i style="--w:14%"></i><em>7%</em></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install" class="wrap">
+    <div class="section-head">
+      <h2>Liftoff in 30 seconds.</h2>
+      <p>No account, no sign-up. Ufolio then updates itself, and every update is checked against its signature before it installs.</p>
+    </div>
+    <div class="steps">
+      <div class="card step">
+        <h3>Download</h3>
+        <p>Get <b>UfolioBrowser.dmg</b> from the <a href="https://github.com/danxharvard/Ufolio/releases/latest">latest release</a>.</p>
+      </div>
+      <div class="card step">
+        <h3>Drag to Applications</h3>
+        <p>Open the download and drag <b>Ufolio Browser</b> onto Applications.</p>
+      </div>
+      <div class="card step">
+        <h3>Open Anyway</h3>
+        <p>The first time, macOS can’t check the developer. Go to <b>System Settings › Privacy &amp; Security</b> and click <b>Open Anyway</b>. Only once.</p>
+      </div>
+      <div class="card step">
+        <h3>Fly</h3>
+        <p>The setup guide brings your bookmarks over from Safari, Chrome, Firefox, Arc and more.</p>
+      </div>
+    </div>
+    <p class="requirements">macOS 15 Sequoia or later · One app for Apple Silicon and Intel</p>
+  </section>
+
+  <section id="promises" class="wrap">
+    <div class="section-head">
+      <h2>The crew’s promises.</h2>
+    </div>
+    <div class="promises">
+      <article class="card"><h3>No probing</h3><p>Ufolio collects no analytics about you. At all.</p></article>
+      <article class="card"><h3>Home planet</h3><p>Bookmarks, history and passwords stay on your Mac. We don’t have servers to send them to.</p></article>
+      <article class="card"><h3>Open source</h3><p>Every line is on GitHub for anyone to read, under GPL-3.0.</p></article>
+      <article class="card"><h3>Light forever</h3><p>New features have to earn their place on board.</p></article>
+    </div>
+  </section>
+
+  <section id="faq" class="wrap">
+    <div class="section-head"><h2>Questions.</h2></div>
+    <div class="faq">
+      <details>
+        <summary>Is Ufolio really free?</summary>
+        <p>Yes. Ufolio is free and open source, with no ads, no account and no paid tier.</p>
+      </details>
+      <details>
+        <summary>Why does macOS warn me the first time I open it?</summary>
+        <p>Ufolio isn’t signed with a paid Apple Developer ID yet, so macOS can’t check who made it. Click <b>Open Anyway</b> in System Settings › Privacy &amp; Security once and it opens normally from then on. Updates are signed with the project’s own key, and Ufolio checks that signature before installing anything.</p>
+      </details>
+      <details>
+        <summary>How is it so fast?</summary>
+        <p>Ufolio runs on WebKit, Apple’s own engine, with the speed settings Safari uses switched on. The Force Field stops ads before they download, so pages have less to fetch. In the 0.51 beta, Instant pages also starts loading the page you’re about to open, so it appears the moment you click.</p>
+      </details>
+      <details>
+        <summary>A site doesn’t work properly. What now?</summary>
+        <p>Click the Force Field button in the toolbar and lower the shield for that site. It stays lowered just for that site, and you can raise it again any time.</p>
+      </details>
+      <details>
+        <summary>Can I bring my bookmarks and passwords?</summary>
+        <p>Yes. The setup guide imports bookmarks and favourite sites from Safari, Chrome, Brave, Edge, Arc, Vivaldi and Firefox, and Settings imports passwords from a CSV export.</p>
+      </details>
+      <details>
+        <summary>What’s the connection with Hushlist?</summary>
+        <p><a href="https://hushlist.online">Hushlist</a> is a free blocklist of ad, tracker, phishing and malware domains. Ufolio can connect it to the Force Field in a couple of clicks, and it works on your other devices too.</p>
+      </details>
+      <details>
+        <summary>How do I try the beta?</summary>
+        <p>In Ufolio, open <b>Settings › Software Update</b> and switch on <b>Get beta versions</b>. Betas get new features first; fixes reach everyone in regular updates.</p>
+      </details>
+      <details>
+        <summary>Wasn’t it called Hush Browser?</summary>
+        <p>It was. Your settings, bookmarks, history and passwords came along for the ride when it was renamed.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="final wrap">
+    <div class="saucer" aria-hidden="true"><svg viewBox="0 0 100 100"><use href="#mark"/></svg></div>
+    <h2>Ready for takeoff?</h2>
+    <p class="lede">A faster, lighter, more private web is one download away.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/danxharvard/Ufolio/releases/latest">Download Ufolio</a>
+      <a class="btn btn-glass" href="https://github.com/danxharvard/Ufolio">View on GitHub</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Ufolio · Made for the Mac · GPL-3.0</span>
+    <div class="row">
+      <a href="https://github.com/danxharvard/Ufolio/releases">Releases</a>
+      <a href="https://github.com/danxharvard/Ufolio">Source</a>
+      <a href="https://hushlist.online">Hushlist</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // A slowly twinkling star field (paused for Reduce Motion and when the tab is hidden).
+  (function () {
+    var canvas = document.getElementById('stars');
+    var ctx = canvas.getContext('2d');
+    var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var stars = [], w = 0, h = 0, ratio = Math.min(window.devicePixelRatio || 1, 2);
+    function resize() {
+      w = window.innerWidth; h = window.innerHeight;
+      canvas.width = w * ratio; canvas.height = h * ratio;
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      var count = Math.round(w * h / 5200);
+      stars = [];
+      for (var i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * w, y: Math.random() * h,
+          r: Math.random() < 0.08 ? 1.4 + Math.random() : 0.4 + Math.random() * 0.8,
+          a: 0.3 + Math.random() * 0.7, s: 0.4 + Math.random() * 1.4, p: Math.random() * 6.28,
+          tint: Math.random() < 0.12 ? '200,188,255' : Math.random() < 0.08 ? '160,240,255' : '255,255,255'
+        });
+      }
+      draw(0);
+    }
+    function draw(t) {
+      ctx.clearRect(0, 0, w, h);
+      for (var i = 0; i < stars.length; i++) {
+        var s = stars[i];
+        var a = still ? s.a : s.a * (0.6 + 0.4 * Math.sin(t / 1000 * s.s + s.p));
+        ctx.fillStyle = 'rgba(' + s.tint + ',' + a.toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.2832); ctx.fill();
+      }
+    }
+    var last = 0;
+    function loop(t) {
+      if (!document.hidden && t - last > 50) { draw(t); last = t; }
+      requestAnimationFrame(loop);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+    if (!still) requestAnimationFrame(loop);
+
+    // The abduction counter counts up once when it comes into view.
+    var el = document.getElementById('abducted'), target = 12847, done = false;
+    function run() {
+      if (done) return; done = true;
+      if (still) { el.textContent = target.toLocaleString(); return; }
+      var start = performance.now();
+      (function tick(now) {
+        var k = Math.min(1, (now - start) / 1400), e = 1 - Math.pow(1 - k, 3);
+        el.textContent = Math.round(target * e).toLocaleString();
+        if (k < 1) requestAnimationFrame(tick);
+      })(start);
+    }
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries, o) {
+        if (entries.some(function (e) { return e.isIntersecting; })) { run(); o.disconnect(); }
+      }, { threshold: 0.4 }).observe(el);
+    } else { run(); }
+  })();
+</script>
+</body>
+</html>
