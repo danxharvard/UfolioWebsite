@@ -140,8 +140,17 @@
   .lights i:nth-child(1) { background: #ff5f57; } .lights i:nth-child(2) { background: #febc2e; } .lights i:nth-child(3) { background: #28c840; }
   .addr { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 26px; border-radius: 8px; background: var(--bg-soft); color: var(--ink-3); font-size: 12px; display: flex; align-items: center; padding: 0 10px; gap: 6px; }
   .addr svg { width: 11px; height: 11px; }
-  .tiles { display: flex; gap: 5px; }
-  .tiles img { width: 24px; height: 24px; border-radius: 6px; }
+  .tiles { display: flex; gap: 2px; }
+  .tb { width: 50px; display: grid; justify-items: center; gap: 1px; color: var(--ink-2); position: relative; }
+  .tb svg { width: 16px; height: 16px; }
+  .tb small { font-size: 8.5px; font-weight: 500; letter-spacing: 0; }
+  .tb.on svg { color: var(--green); }
+  .tb .count { position: absolute; top: -5px; left: 28px; font-size: 7.5px; font-weight: 700; color: #fff; background: #219a4a; border-radius: 99px; padding: 1px 4px; }
+  .gt { display: grid; place-items: center; border-radius: 22%; color: #fff; flex: none;
+    background: linear-gradient(160deg, var(--a, #5e5ce6), var(--b, #3634a3)); box-shadow: inset 0 0 0 .5px rgba(255,255,255,.2); }
+  .gt svg { width: 56%; height: 56%; }
+  .gt.green { --a: #4cd964; --b: #1f9a4c; } .gt.blue { --a: #4d9fff; --b: #1a6bf2; } .gt.purple { --a: #a078ff; --b: #6b47e0; }
+  .gt.red { --a: #ff5a4f; --b: #d4251b; } .gt.grey { --a: #9e9ea3; --b: #6b6b70; }
   .mac-page { padding: 34px 30px; }
   .mac-page .hello { font-size: 13px; color: var(--ink-3); margin: 0 0 6px; }
   .mac-page .greet { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; margin: 0 0 22px; }
@@ -161,7 +170,8 @@
     animation: rise .7s cubic-bezier(.2, .8, .2, 1) both;
   }
   .note:nth-child(2) { animation-delay: .12s; } .note:nth-child(3) { animation-delay: .24s; }
-  .note img { width: 34px; height: 34px; border-radius: 8px; }
+  .note img, .note .gt { width: 34px; height: 34px; border-radius: 8px; }
+  .note .gt { color: #fff; }
   .note b { display: block; font-weight: 600; font-size: 13px; }
   .note span { color: var(--ink-2); }
   .note time { color: var(--ink-3); font-size: 11px; align-self: start; }
@@ -170,7 +180,7 @@
   /* Two cards under the hero */
   .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding-bottom: 40px; }
   .panel { background: var(--card); border-radius: 22px; padding: 22px 24px; display: flex; align-items: center; gap: 18px; }
-  .panel img { width: 52px; height: 52px; border-radius: 13px; flex: none; }
+  .panel img, .panel .gt { width: 52px; height: 52px; border-radius: 13px; flex: none; }
   .panel h3 { margin: 0 0 3px; font-size: 17px; font-weight: 600; }
   .panel p { margin: 0; font-size: 14px; color: var(--ink-2); }
   .panel .go { margin-left: auto; color: var(--ink-3); font-size: 22px; }
@@ -192,7 +202,7 @@
   }
   .rel:hover { transform: translateY(-3px); }
   .rel-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
-  .rel-top img { width: 42px; height: 42px; border-radius: 10px; }
+  .rel-top img, .rel-top .gt { width: 42px; height: 42px; border-radius: 10px; }
   .chip { font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; letter-spacing: 0; }
   .chip.beta { background: var(--chip-beta); color: var(--orange); }
   .chip.release { background: var(--chip-release); color: var(--green); }
@@ -204,6 +214,7 @@
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .card { background: var(--card); border-radius: 26px; padding: 28px; }
   .card.big { grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; }
+  .card .tile svg { width: 30px; height: 30px; color: #fff; }
   .card .tile {
     width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center; font-size: 28px; margin-bottom: 18px;
     background: linear-gradient(160deg, var(--a, #5e5ce6), var(--b, #3634a3));
@@ -299,6 +310,15 @@
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 2.8v5.4c0 4.4-3 7.9-7 9.3-4-1.4-7-4.9-7-9.3V5.8L12 3z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 3v17.5c-4-1.4-7-4.9-7-9.3V5.8L12 3z" fill="currentColor"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.5v8.5M8.4 12.6L12 16.2l3.6-3.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-eyeslash" viewBox="0 0 24 24"><path d="M2.6 12s3.4-6.3 9.4-6.3S21.4 12 21.4 12s-3.4 6.3-9.4 6.3S2.6 12 2.6 12z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4.2 4.2l15.6 15.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="12" r="1.25" fill="currentColor"/><circle cx="12" cy="12" r="1.25" fill="currentColor"/><circle cx="16" cy="12" r="1.25" fill="currentColor"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 2.5L5 13.6h6.2l-1.4 7.9L18.6 10h-6.3l.9-7.5z" fill="currentColor"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.6v12.8c0 .6.7 1 1.2.7l10-6.4c.5-.3.5-1.1 0-1.4l-10-6.4c-.5-.3-1.2.1-1.2.7z" fill="currentColor"/></symbol>
+  <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M10 3.5l1.6 4.6 4.6 1.6-4.6 1.6L10 16l-1.6-4.7-4.6-1.6 4.6-1.6L10 3.5zM17.5 13.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2z" fill="currentColor"/></symbol>
+</svg>
 
 <nav>
   <div class="wrap">
@@ -336,10 +356,10 @@
           <div class="lights"><i></i><i></i><i></i></div>
           <div class="addr"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M3 5V3.6a3 3 0 0 1 6 0V5h.5c.6 0 1 .4 1 1v4.5c0 .6-.4 1-1 1h-7c-.6 0-1-.4-1-1V6c0-.6.4-1 1-1H3zm1.5 0h3V3.6a1.5 1.5 0 0 0-3 0V5z"/></svg>Search or enter a website</div>
           <div class="tiles">
-            <img src="assets/tile-downloads.png" alt="">
-            <img src="assets/tile-adblock.png" alt="">
-            <img src="assets/tile-stealth.png" alt="">
-            <img src="assets/tile-more.png" alt="">
+            <span class="tb"><svg><use href="#i-down"/></svg><small>Downloads</small></span>
+            <span class="tb on"><svg><use href="#i-shield"/></svg><small>Blocking</small><b class="count">24</b></span>
+            <span class="tb"><svg><use href="#i-eyeslash"/></svg><small>Stealth</small></span>
+            <span class="tb"><svg><use href="#i-more"/></svg><small>More</small></span>
           </div>
         </div>
         <div class="mac-page">
@@ -357,21 +377,21 @@
         </div>
       </div>
       <div class="notes">
-        <div class="note"><img src="assets/tile-adblock.png" alt=""><div><b>Force Field</b><span>24 ads and trackers stopped on this page</span></div><time>now</time></div>
-        <div class="note"><img src="assets/icon.png" alt=""><div><b>Instant pages</b><span>Opened in 13 ms, loaded before you clicked</span></div><time>1m ago</time></div>
-        <div class="note"><img src="assets/tile-downloads.png" alt=""><div><b>YouTube</b><span>Video ad skipped</span></div><time>3m ago</time></div>
+        <div class="note"><span class="gt green"><svg><use href="#i-shield"/></svg></span><div><b>Force Field</b><span>24 ads and trackers stopped on this page</span></div><time>now</time></div>
+        <div class="note"><span class="gt blue"><svg><use href="#i-bolt"/></svg></span><div><b>Instant pages</b><span>Opened in 13 ms, loaded before you clicked</span></div><time>1m ago</time></div>
+        <div class="note"><span class="gt red"><svg><use href="#i-play"/></svg></span><div><b>YouTube</b><span>Video ad skipped</span></div><time>3m ago</time></div>
       </div>
     </div>
   </div>
 
   <div class="wrap duo">
     <a class="panel" href="https://hushlist.online">
-      <img src="assets/tile-adblock.png" alt="">
+      <span class="gt green"><svg><use href="#i-shield"/></svg></span>
       <div><h3>240,000+ more domains blocked</h3><p>Connect Hushlist to the Force Field in a couple of clicks. It works on your other devices too.</p></div>
       <span class="go">›</span>
     </a>
     <a class="panel" href="#faq">
-      <img src="assets/tile-more.png" alt="">
+      <span class="gt grey"><svg><use href="#i-sparkles"/></svg></span>
       <div><h3>Try the beta</h3><p>Get new features first: Settings › Software Update › Get beta versions.</p></div>
       <span class="go">›</span>
     </a>
@@ -387,13 +407,14 @@
       <a class="more" href="https://github.com/danxharvard/Ufolio/releases">All releases</a>
     </div>
     <div class="rail reveal">
-      <article class="rel"><div class="rel-top"><img src="assets/tile-more.png" alt=""><span class="chip beta">Beta 4</span></div><h3>Gliding switches</h3><div class="ver">0.54.0-beta.4</div><p>Every switch slides on a soft spring, drop-downs glide open, and Settings opens quicker.</p></article>
-      <article class="rel"><div class="rel-top"><img src="assets/tile-stealth.png" alt=""><span class="chip beta">Beta 3</span></div><h3>New toolbar icons</h3><div class="ver">0.54.0-beta.3</div><p>A saucer for every button. While a file downloads, it glows and a ring travels round it.</p></article>
+      <article class="rel"><div class="rel-top"><span class="gt green"><svg><use href="#i-shield"/></svg></span><span class="chip beta">Beta 5</span></div><h3>A cleaner toolbar</h3><div class="ver">0.54.0-beta.5</div><p>Crisp Apple-style buttons with words, a release timeline in Settings, and little notices for your wins.</p></article>
+      <article class="rel"><div class="rel-top"><span class="gt purple"><svg><use href="#i-sparkles"/></svg></span><span class="chip beta">Beta 4</span></div><h3>Gliding switches</h3><div class="ver">0.54.0-beta.4</div><p>Every switch slides on a soft spring, drop-downs glide open, and Settings opens quicker.</p></article>
+      <article class="rel"><div class="rel-top"><span class="gt blue"><svg><use href="#i-down"/></svg></span><span class="chip beta">Beta 3</span></div><h3>Downloads you can watch</h3><div class="ver">0.54.0-beta.3</div><p>While a file downloads, a ring travels round the Downloads button until it’s done.</p></article>
       <article class="rel"><div class="rel-top"><img src="assets/icon.png" alt=""><span class="chip beta">Beta 2</span></div><h3>Light Sleep</h3><div class="ver">0.54.0-beta.2</div><p>Tabs left in the background hand back memory they don’t need, without reloading.</p></article>
-      <article class="rel"><div class="rel-top"><img src="assets/tile-more.png" alt=""><span class="chip release">Release</span></div><h3>Frosted on every site</h3><div class="ver">0.53.1</div><p>Magic Theme retires, so Ufolio keeps its frosted look everywhere, plus fixes for sleeping tabs.</p></article>
+      <article class="rel"><div class="rel-top"><span class="gt grey"><svg><use href="#i-more"/></svg></span><span class="chip release">Release</span></div><h3>Frosted on every site</h3><div class="ver">0.53.1</div><p>Magic Theme retires, so Ufolio keeps its frosted look everywhere, plus fixes for sleeping tabs.</p></article>
       <article class="rel"><div class="rel-top"><img src="assets/icon.png" alt=""><span class="chip release">Release</span></div><h3>First site, ready</h3><div class="ver">0.53.0</div><p>The site you open first is loaded by the time you click it. Facebook, X and Reddit get quicker too.</p></article>
-      <article class="rel"><div class="rel-top"><img src="assets/tile-more.png" alt=""><span class="chip release">Release</span></div><h3>Compact Mode in a click</h3><div class="ver">0.52.1</div><p>Hide the tabs and toolbar straight from the More menu. YouTube ads skip faster.</p></article>
-      <article class="rel"><div class="rel-top"><img src="assets/tile-downloads.png" alt=""><span class="chip release">Release</span></div><h3>Pages before you click</h3><div class="ver">0.52.0</div><p>Point at a link and it’s fetched before you click. YouTube without ads, and Link Preview.</p></article>
+      <article class="rel"><div class="rel-top"><span class="gt grey"><svg><use href="#i-more"/></svg></span><span class="chip release">Release</span></div><h3>Compact Mode in a click</h3><div class="ver">0.52.1</div><p>Hide the tabs and toolbar straight from the More menu. YouTube ads skip faster.</p></article>
+      <article class="rel"><div class="rel-top"><span class="gt blue"><svg><use href="#i-bolt"/></svg></span><span class="chip release">Release</span></div><h3>Pages before you click</h3><div class="ver">0.52.0</div><p>Point at a link and it’s fetched before you click. YouTube without ads, and Link Preview.</p></article>
     </div>
   </section>
 
@@ -421,9 +442,9 @@
           <div class="speed-row"><span>Usual load</span><i style="--w:53%;--c:var(--ink-3)"></i><em>501 ms</em></div>
         </div>
       </article>
-      <article class="card reveal"><img class="tile" src="assets/tile-adblock.png" alt=""><p class="kind">Privacy</p><h3>Force Field</h3><p>Ads, trackers and cookie banners zapped before they load, with a live count of everything it stopped.</p></article>
-      <article class="card reveal"><img class="tile" src="assets/tile-stealth.png" alt=""><p class="kind">Privacy</p><h3>Cloaked by design</h3><p>Stealth windows, third-party cookies blocked, fingerprinting protection, Clean Links and look-alike site warnings.</p></article>
-      <article class="card reveal"><img class="tile" src="assets/tile-downloads.png" alt=""><p class="kind">Video</p><h3>YouTube, minus the ads</h3><p>Video ads skipped the moment they start, and YouTube plays in a format your Mac decodes in hardware, so it runs cooler.</p></article>
+      <article class="card reveal"><div class="tile" style="--a:#4cd964;--b:#1f9a4c"><svg><use href="#i-shield"/></svg></div><p class="kind">Privacy</p><h3>Force Field</h3><p>Ads, trackers and cookie banners zapped before they load, with a live count of everything it stopped.</p></article>
+      <article class="card reveal"><div class="tile" style="--a:#a078ff;--b:#6b47e0"><svg><use href="#i-eyeslash"/></svg></div><p class="kind">Privacy</p><h3>Cloaked by design</h3><p>Stealth windows, third-party cookies blocked, fingerprinting protection, Clean Links and look-alike site warnings.</p></article>
+      <article class="card reveal"><div class="tile" style="--a:#ff5a4f;--b:#d4251b"><svg><use href="#i-play"/></svg></div><p class="kind">Video</p><h3>YouTube, minus the ads</h3><p>Video ads skipped the moment they start, and YouTube plays in a format your Mac decodes in hardware, so it runs cooler.</p></article>
       <article class="card reveal"><div class="tile" style="--a:#bf5af2;--b:#8944ab">🌌</div><p class="kind">Design</p><h3>Frosted glass</h3><p>A glass-canopy design in light and dark, gliding switches, and tabs along the top or down the side.</p></article>
       <article class="card reveal"><div class="tile" style="--a:#64d2ff;--b:#0a84ff">🪐</div><p class="kind">Organise</p><h3>Orbits and Profiles</h3><p>Keep Work and Personal in separate orbits, each with its own tabs, and its own sign-ins if you like.</p></article>
       <article class="card reveal"><div class="tile" style="--a:#ff9f0a;--b:#d97a00">🛰️</div><p class="kind">Find anything</p><h3>Command Palette</h3><p>Press ⌘K for one box that finds tabs, commands, bookmarks and history.</p></article>
